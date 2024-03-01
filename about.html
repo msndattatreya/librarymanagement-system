@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+        }
+
+        nav {
+            background-color: #555;
+            color: white;
+            padding: 10px;
+        }
+
+        section {
+            padding: 20px;
+        }
+
+        form {
+            display: inline-block;
+            text-align: right;
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 200px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #details {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 200px;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Library Management System</h1>
+    </header>
+
+    <nav>
+        <a href="#">Home</a> |
+        <a href="#">Books</a> |
+        <a href="#">Members</a> |
+        <a href="#">Transactions</a>
+    </nav>
+
+    <section>
+        <h2>Add a Book</h2>
+        <form id="bookForm">
+            <label for="bookName">Book Name:</label>
+            <input type="text" id="bookName" name="bookName" required><br>
+
+            <label for="details">Details:</label>
+            <textarea id="details" name="details" rows="4" required></textarea><br>
+
+            <label for="author">Author:</label>
+            <input type="text" id="author" name="author" required><br>
+
+            <label for="publication">Publication:</label>
+            <input type="text" id="publication" name="publication" required><br>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" required><br>
+
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" required><br>
+
+            <button type="button" onclick="addBook()">Submit</button>
+        </form>
+
+        <h2>Book Records</h2>
+        <table id="bookTable">
+            <tr>
+                <th>Book Name</th>
+                <th>Details</th>
+                <th>Author</th>
+                <th>Publication</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+            <!-- Book records will be dynamically added here -->
+        </table>
+    </section>
+    <script>
+        async function addBook() {
+            var bookName = document.getElementById("bookName").value;
+            var details = document.getElementById("details").value;
+            var author = document.getElementById("author").value;
+            var publication = document.getElementById("publication").value;
+            var quantity = document.getElementById("quantity").value;
+            var price = document.getElementById("price").value;
+
+            var table = document.getElementById("bookTable");
+            var newRow = table.insertRow(table.rows.length);
+
+            var cell1 = newRow.insertCell(0);
+            var cell2 = newRow.insertCell(1);
+            var cell3 = newRow.insertCell(2);
+            var cell4 = newRow.insertCell(3);
+            var cell5 = newRow.insertCell(4);
+            var cell6 = newRow.insertCell(5);
+            var cell7 = newRow.insertCell(6);
+            var cell8 = newRow.insertCell(7);
+
+            cell1.innerHTML = bookName;
+            cell2.innerHTML = details;
+            cell3.innerHTML = author;
+            cell4.innerHTML = publication;
+            cell5.innerHTML = quantity;
+            cell6.innerHTML = price;
+            cell8.innerHTML = '<button onclick="deleteBook(this)">Delete</button>';
+
+            document.getElementById("bookForm").reset();
+
+            console.log("one");
+
+            await fetch("http://localhost:5000/api/books/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                bookName,
+                details,
+                author,
+                publication,
+                quantity,
+                price,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            // Update the frontend with the newly added book
+            displayBook(data.book);
+        })
+        .catch(error => console.error(error));
+    }
+
+    function deleteBook(button) {
+        var row = button.parentNode.parentNode;
+        var bookId = row.getAttribute("data-book-id");
+
+        fetch(`http://localhost:5000/api/books/delete/${bookId}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            // Update the frontend by removing the deleted book
+            row.remove();
+        })
+        .catch(error => console.error(error));
+    }
+
+    // Helper function to display a book in the table
+    function displayBook(book) {
+        var table = document.getElementById("bookTable");
+        var newRow = table.insertRow(table.rows.length);
+        newRow.setAttribute("data-book-id", book.id); // Set the book ID as an attribute
+
+        var cell1 = newRow.insertCell(0);
+        var cell2 = newRow.insertCell(1);
+        var cell3 = newRow.insertCell(2);
+        var cell4 = newRow.insertCell(3);
+        var cell5 = newRow.insertCell(4);
+        var cell6 = newRow.insertCell(5);
+        var cell7 = newRow.insertCell(6);
+        var cell8 = newRow.insertCell(7);
+
+        cell1.innerHTML = book.bookName;
+        cell2.innerHTML = book.details;
+        cell3.innerHTML = book.author;
+        cell4.innerHTML = book.publication;
+        cell5.innerHTML = book.quantity;
+        cell6.innerHTML = book.price;
+        cell7.innerHTML = book.bookPhoto;
+        cell8.innerHTML = '<button onclick="deleteBook(this)">Delete</button>';
+    }
+
+    // Fetch and display all books on page load
+    window.onload = function() {
+        fetch("http://localhost:5000/api/books")
+            .then(response => response.json())
+            .then(data => {
+                // Display existing books in the table
+                data.forEach(book => {
+                    displayBook(book);
+                });
+            })
+            .catch(error => console.error(error));
+    }
+</script>
+
+</body>
+
+</html>
